@@ -1,0 +1,59 @@
+---
+config:
+  theme: neutral
+---
+erDiagram
+    fact_ventas ||--o{ dim_cliente : "codigo_cliente"
+    fact_ventas ||--o{ dim_producto : "SKU_codigo"
+    fact_ventas ||--o{ dim_fecha : "fecha"
+    fact_ventas ||--o{ dim_sucursal : "codigo_sucursal"
+
+    fact_stock ||--o{ dim_producto : "SKU_codigo"
+    fact_stock ||--o{ dim_fecha : "fecha"
+    fact_stock ||--o{ dim_sucursal : "codigo_sucursal"
+    
+    dim_cliente {
+        INT codigo_cliente PK
+        STRING nombre_cliente
+        STRING tipo_negocio
+        STRING provincia
+        STRING ciudad
+        STRING razon_social
+        DATE fecha_alta
+        FLOAT deuda_vencida
+        STRING estado
+    }
+    dim_producto {
+        STRING SKU_codigo PK
+        STRING SKU_descripcion
+        STRING unidad
+    }
+    dim_fecha {
+        DATE fecha PK
+        INT dia
+        INT mes
+        INT año
+        STRING nombre_dia
+    }
+    dim_sucursal {
+        INT codigo_sucursal PK
+        STRING direccion
+        FLOAT lat
+        FLOAT long
+        STRING distribuidor
+    }
+    fact_ventas {
+        INT codigo_cliente FK
+        STRING SKU_codigo FK
+        DATE fecha FK
+        INT codigo_sucursal FK
+        INT venta_unidades
+        FLOAT venta_importe
+        STRING condicion_de_venta
+    }
+    fact_stock {
+        INT codigo_sucursal FK
+        STRING SKU_codigo FK
+        DATE fecha FK
+        INT Stock_unidades
+    }
