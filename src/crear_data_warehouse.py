@@ -1,21 +1,28 @@
+from config import PROJECT_ID, LOCATION, RAW_DATASET, DWH_DATASET, validate_config
 from google.cloud import bigquery
+import sys
+import os
 
-PROJECT_ID = "usm-infra-grupo2"
+# Importar configuración
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'config'))
+
+# Validar configuración
+validate_config()
 
 
 def create_dataset():
     client = bigquery.Client(project=PROJECT_ID)
-    dataset_id = f"{PROJECT_ID}.dwh"
+    dataset_id = f"{PROJECT_ID}.{DWH_DATASET}"
 
     dataset = bigquery.Dataset(dataset_id)
-    dataset.location = "US"
+    dataset.location = LOCATION
 
     try:
         client.get_dataset(dataset_id)
-        print("Dataset 'dwh' already exists.")
+        print(f"Dataset '{DWH_DATASET}' already exists.")
     except:
         client.create_dataset(dataset)
-        print("Dataset 'dwh' created.")
+        print(f"Dataset '{DWH_DATASET}' created.")
 
 
 def create_table(PROJECT_ID, TARGET_TABLE_ID, SQL, WRT_DISPOSITION):
@@ -50,7 +57,7 @@ if __name__ == "__main__":
                     venta_unidades,
                     venta_importe,
                     condicion_venta
-                FROM `{PROJECT_ID}.raw.archivos_ventaclientes`
+                FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_ventaclientes`
                 WHERE venta_unidades != 0 OR venta_importe != 0
                 ORDER BY fecha ASC
             """
@@ -63,7 +70,7 @@ if __name__ == "__main__":
                     SKU_codigo,
                     fecha,
                     Stock_unidades
-                FROM `{PROJECT_ID}.raw.archivos_stock`
+                FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_stock`
                 ORDER BY fecha ASC
             """
         },
@@ -77,7 +84,7 @@ if __name__ == "__main__":
                             PARTITION BY codigo_cliente
                             ORDER BY fecha_alta DESC
                         ) AS rn
-                    FROM `{PROJECT_ID}.raw.archivos_maestro`
+                    FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_maestro`
                 )
                 SELECT
                     codigo_cliente,
@@ -104,7 +111,7 @@ if __name__ == "__main__":
                                 PARTITION BY SKU_codigo
                                 ORDER BY fecha DESC
                             ) AS rn
-                        FROM `{PROJECT_ID}.raw.archivos_stock`
+                        FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_stock`
                     )
                 SELECT
                     SKU_codigo,
@@ -132,7 +139,7 @@ if __name__ == "__main__":
                         WHEN 'Saturday' THEN 'Sábado'
                         WHEN 'Sunday' THEN 'Domingo'
                     END AS nombre_dia
-                FROM `{PROJECT_ID}.raw.archivos_ventaclientes`
+                FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_ventaclientes`
                 ORDER BY fecha ASC
             """
         },
@@ -145,7 +152,7 @@ if __name__ == "__main__":
                         ROW_NUMBER() OVER (
                             PARTITION BY codigo_sucursal
                         ) AS rn
-                    FROM `{PROJECT_ID}.raw.archivos_maestro`
+                    FROM `{PROJECT_ID}.{RAW_DATASET}.archivos_maestro`
                 )
                 SELECT
                     codigo_sucursal,
@@ -163,6 +170,6 @@ if __name__ == "__main__":
     for table in tables:
         table_name = table["name"]
         sql = table["sql"]
-        target_table_id = f"{PROJECT_ID}.dwh.{table_name}"
+        target_table_id = f"{PROJECT_ID}.{DWH_DATASET}.{table_name}"
         create_table(PROJECT_ID, target_table_id, sql,
                      bigquery.WriteDisposition.WRITE_TRUNCATE)

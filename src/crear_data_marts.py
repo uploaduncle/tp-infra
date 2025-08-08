@@ -1,21 +1,28 @@
+from config import PROJECT_ID, LOCATION, DWH_DATASET, DMS_DATASET, validate_config
 from google.cloud import bigquery
+import sys
+import os
 
-PROJECT_ID = "usm-infra-grupo2"
+# Importar configuración
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'config'))
+
+# Validar configuración
+validate_config()
 
 
 def create_dataset():
     client = bigquery.Client(project=PROJECT_ID)
-    dataset_id = f"{PROJECT_ID}.dms"
+    dataset_id = f"{PROJECT_ID}.{DMS_DATASET}"
 
     dataset = bigquery.Dataset(dataset_id)
-    dataset.location = "US"
+    dataset.location = LOCATION
 
     try:
         client.get_dataset(dataset_id)
-        print("Dataset 'dms' already exists.")
+        print(f"Dataset '{DMS_DATASET}' already exists.")
     except:
         client.create_dataset(dataset)
-        print("Dataset 'dms' created.")
+        print(f"Dataset '{DMS_DATASET}' created.")
 
 
 def create_table(PROJECT_ID, TARGET_TABLE_ID, SQL, WRT_DISPOSITION):
@@ -78,10 +85,10 @@ if __name__ == "__main__":
                     v.venta_importe AS venta_importe,
                     v.condicion_venta AS condicion_venta,
                     c.estado AS estado,
-                FROM `{PROJECT_ID}.dwh.fact_ventas` v
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_producto` p ON p.SKU_codigo = v.SKU_codigo
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
+                FROM `{PROJECT_ID}.{DWH_DATASET}.fact_ventas` v
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_producto` p ON p.SKU_codigo = v.SKU_codigo
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
             """
         },
         {
@@ -112,9 +119,9 @@ if __name__ == "__main__":
                     s.lat AS lat,
                     c.tipo_negocio AS tipo_negocio,
                     v.venta_unidades AS venta_unidades,
-                FROM `{PROJECT_ID}.dwh.fact_ventas` v
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
+                FROM `{PROJECT_ID}.{DWH_DATASET}.fact_ventas` v
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
             """
         },
         {
@@ -156,14 +163,14 @@ if __name__ == "__main__":
                     v.condicion_venta AS condicion_venta,
                     c.deuda_vencida AS deuda_vencida,
 
-                FROM `{PROJECT_ID}.dwh.fact_ventas` v
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
-                LEFT JOIN `{PROJECT_ID}.dwh.fact_stock` st 
+                FROM `{PROJECT_ID}.{DWH_DATASET}.fact_ventas` v
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_cliente` c ON c.codigo_cliente = v.codigo_cliente
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_sucursal` s ON s.codigo_sucursal = v.codigo_sucursal
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.fact_stock` st 
                 ON st.codigo_sucursal = v.codigo_sucursal
                 AND st.SKU_codigo = v.SKU_codigo
                 AND st.fecha = v.fecha
-                LEFT JOIN `{PROJECT_ID}.dwh.dim_producto` p ON p.SKU_codigo = v.SKU_codigo
+                LEFT JOIN `{PROJECT_ID}.{DWH_DATASET}.dim_producto` p ON p.SKU_codigo = v.SKU_codigo
             """
         }
     ]
@@ -171,6 +178,6 @@ if __name__ == "__main__":
     for table in tables:
         table_name = table["name"]
         sql = table["sql"]
-        target_table_id = f"{PROJECT_ID}.dms.{table_name}"
+        target_table_id = f"{PROJECT_ID}.{DMS_DATASET}.{table_name}"
         create_table(PROJECT_ID, target_table_id, sql,
                      bigquery.WriteDisposition.WRITE_TRUNCATE)

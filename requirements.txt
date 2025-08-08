@@ -1,0 +1,19 @@
+# Dependencias principales
+google-cloud-bigquery>=3.11.0
+google-cloud-storage>=2.10.0
+pandas>=2.0.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+
+# Generación de datos sintéticos
+faker>=19.0.0
+names>=0.3.0
+
+# Jupyter notebooks
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Visualización (opcional)
+matplotlib>=3.5.0
+seaborn>=0.12.0
+plotly>=5.0.0

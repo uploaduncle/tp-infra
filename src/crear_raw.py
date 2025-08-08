@@ -1,15 +1,23 @@
+from config import PROJECT_ID, BUCKET_NAME, LOCATION, RAW_DATASET, validate_config
 from google.cloud import bigquery, storage
 from google.cloud.exceptions import NotFound
 import pandas as pd
 import io
 import re
+import sys
+import os
+
+# Importar configuración
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'config'))
+
+# Validar configuración
+validate_config()
 
 # ------------------- CREAR DATASET -------------------
-PROJECT_ID = "usm-infra-grupo2"
-client = bigquery.Client(project=PROJECT_ID)
 
-dataset_name = 'raw'
-location = 'US'
+client = bigquery.Client(project=PROJECT_ID)
+dataset_name = RAW_DATASET
+location = LOCATION
 
 
 def create_bigquery_dataset(dataset_name):
@@ -37,10 +45,9 @@ def extract_date_from_filename(filename):
 
 
 def cargar_maestro():
-    BUCKET_NAME = "bucket_grupo2_infra"
     SOURCE_FOLDER = "generated_data/Archivos_Maestro/"
     OUTPUT_BLOB = "processed_data/maestro.csv"
-    TABLE_ID = f"{PROJECT_ID}.raw.archivos_maestro"
+    TABLE_ID = f"{PROJECT_ID}.{RAW_DATASET}.archivos_maestro"
 
     maestro_schema = [
         bigquery.SchemaField("codigo_sucursal", "INT64"),
@@ -102,10 +109,9 @@ def cargar_maestro():
 
 
 def cargar_stock():
-    BUCKET_NAME = "bucket_grupo2_infra"
     SOURCE_FOLDER = "generated_data/Archivos_Stock/"
     OUTPUT_BLOB = "processed_data/stock.csv"
-    TABLE_ID = f"{PROJECT_ID}.raw.archivos_stock"
+    TABLE_ID = f"{PROJECT_ID}.{RAW_DATASET}.archivos_stock"
 
     stock_schema = [
         bigquery.SchemaField("codigo_sucursal", "INT64"),
@@ -155,10 +161,9 @@ def cargar_stock():
 
 
 def cargar_ventas_clientes():
-    BUCKET_NAME = "bucket_grupo2_infra"
     SOURCE_FOLDER = "generated_data/Archivos_VentaClientes/"
     OUTPUT_BLOB = "processed_data/ventas.csv"
-    TABLE_ID = f"{PROJECT_ID}.raw.archivos_ventaclientes"
+    TABLE_ID = f"{PROJECT_ID}.{RAW_DATASET}.archivos_ventaclientes"
 
     clientes_schema = [
         bigquery.SchemaField("codigo_sucursal", "INT64"),
